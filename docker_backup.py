@@ -110,6 +110,7 @@ class MySQLBackup(BackupStrategy): # pylint: disable=too-few-public-methods
                                     f'{container.name}_{env.get("MYSQL_DATABASE")}',
                                     'sql.gz')
             write_compressed_file(path, output)
+            print()
 
 
 class SQLiteGeneric(BackupStrategy, metaclass=abc.ABCMeta): # pylint: disable=too-few-public-methods
