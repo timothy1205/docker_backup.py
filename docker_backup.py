@@ -61,7 +61,10 @@ def delete_old_backups(backup_dir: str, max_days: int):
     """
     Delete all backups older than max_days
     """
-    print(f'Looking for backups older than: {max_days} day{max_days == 1 and "" or "s"}')
+    if max_days < 1:
+        raise ValueError("Expected positive integer")
+
+    print(f'Looking for backups older than: {max_days} day{"" if max_days == 1 else "s"}')
     for path in os.listdir(backup_dir):
         path = os.path.join(backup_dir, path)
         if not os.path.isfile(path):
