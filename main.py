@@ -6,10 +6,16 @@ import docker_backup
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
-        raise RuntimeError("Usage: main.py <backup_dir> <max_days>")
+        print("Missing arguments!")
+        print("Usage: main.py <backup_dir> <max_days>")
+        sys.exit(1)
 
     PATH = sys.argv[1]
     MAX_DAYS = int(sys.argv[2])
+
+    if MAX_DAYS < 1:
+        print("<max_days> must be a positive non-zero integer!")
+        sys.exit(1)
 
     docker_backup.MySQLBackup(PATH).execute()
     docker_backup.JellyfinBackup(PATH).execute()
