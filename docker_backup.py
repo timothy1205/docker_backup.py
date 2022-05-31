@@ -5,6 +5,7 @@ import abc
 import gzip
 import os
 import datetime
+import time
 import docker
 from docker.models.containers import Container
 
@@ -55,6 +56,23 @@ def write_compressed_file(path: str, data: bytes):
         file.write(compressed_data)
 
     print(f'Wrote file: {path}')
+
+def delete_old_backups(backup_dir: str, max_days: int):
+    """
+    Delete all backups older than max_days
+    """
+    print(f'Looking for backups older than: {max_days} day{max_days == 1 and "" or "s"}')
+    for path in os.listdir(backup_dir):
+        path = os.path.join(backup_dir, path)
+        if not os.path.isfile(path):
+            continue
+        if time.time() - os.path.getmtime(path) <= max_days * 24 * 60 * 60:
+            continue
+
+        print(f'Deleted file: {path}')
+        os.remove(path)
+
+    print()
 
 
 class BackupStrategy(metaclass=abc.ABCMeta): # pylint: disable=too-few-public-methods
