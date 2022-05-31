@@ -141,7 +141,7 @@ class JellyfinBackup(SQLiteGeneric):
     """
     keywords = ["jellyfin"]
     db_path = "/config/data"
-    db_ext = ".db"
+    db_ext = "db"
 
     def __init__(self, backup_dir: str,keywords=None):
         super().__init__(
@@ -149,8 +149,13 @@ class JellyfinBackup(SQLiteGeneric):
         )
 
     def execute(self):
-        ls_path = os.path.join(self.db_path, "*.db")
+        ls_path = os.path.join(self.db_path, f"*.{self.db_ext}")
         for container in self.containers:
-            ls_output = container.exec_run(f'bash -c "ls {ls_path}"').output.decode("utf-8")
-            for path in ls_output.strip().split("\n"):
+            ls_result = container.exec_run(f'bash -c "ls {ls_path}"')
+            ls_output = ls_result.output.decode("utf-8").strip()
+            if ls_result.exit_code != 0:
+                print(f"ls failed with exit code {ls_result.exit_code}: {ls_output}")
+                return
+
+            for path in ls_output.split("\n"):
                 self.backup_database(container, path)
