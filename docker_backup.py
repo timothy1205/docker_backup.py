@@ -79,7 +79,7 @@ class BackupStrategy(metaclass=abc.ABCMeta): # pylint: disable=too-few-public-me
 
         self.containers = list(filter(__helper, self.containers))
 
-    @abc.abstractclassmethod
+    @abc.abstractmethod
     def execute(self):
         """
         Execute backup solution
@@ -110,3 +110,46 @@ class MySQLBackup(BackupStrategy): # pylint: disable=too-few-public-methods
                                     f'{container.name}_{env.get("MYSQL_DATABASE")}',
                                     'sql.gz')
             write_compressed_file(path, output)
+
+
+class SQLiteGeneric(BackupStrategy, metaclass=abc.ABCMeta): # pylint: disable=too-few-public-methods
+    """
+    Generic SQLite backup to provide method for individual database files
+    """
+    def backup_database(self, container: Container, path: str):
+        """
+        Backup sqlite db file at path of container
+        """
+        output = container.exec_run(
+            f'/usr/bin/sqlite3 {path} .dump'
+        ).output
+
+        file_name = os.path.basename(path)
+        if "." in file_name:
+            file_name = file_name.split(".")[0]
+
+        backup_path = format_file_path(self.backup_dir,
+                                f'{container.name}_{file_name}',
+                                'sql.gz')
+        write_compressed_file(backup_path, output)
+
+
+class JellyfinBackup(SQLiteGeneric):
+    """
+    Jellyfin (official) container backup
+    """
+    keywords = ["jellyfin"]
+    db_path = "/config/data"
+    db_ext = ".db"
+
+    def __init__(self, backup_dir: str,keywords=None):
+        super().__init__(
+            backup_dir, merge_keywords(self.keywords, keywords)
+        )
+
+    def execute(self):
+        ls_path = os.path.join(self.db_path, "*.db")
+        for container in self.containers:
+            ls_output = container.exec_run(f'bash -c "ls {ls_path}"').output.decode("utf-8")
+            for path in ls_output.strip().split("\n"):
+                self.backup_database(container, path)
