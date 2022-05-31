@@ -159,3 +159,34 @@ class JellyfinBackup(SQLiteGeneric):
 
             for path in ls_output.split("\n"):
                 self.backup_database(container, path)
+        print()
+
+
+class RadarrBackup(JellyfinBackup):
+    """
+    Linuxserver radarr
+    """
+    keywords = ["radarr"]
+    db_path = "/config/"
+
+
+class SonarrBackup(RadarrBackup):
+    """
+    Linuxserver sonarr
+    """
+    keywords = ["sonarr"]
+
+
+class GrocyBackup(JellyfinBackup):
+    """
+    Linuxserver grocy
+    """
+    keywords = ["grocy"]
+
+class DuplicatiBackup(JellyfinBackup):
+    """
+    Linuxserver duplicati
+    """
+    keywords = ["duplicati"]
+    db_path = "/config/"
+    db_ext = "sqlite"
